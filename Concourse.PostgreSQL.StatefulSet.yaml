@@ -1,0 +1,58 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: concourse-postgres
+  labels:
+    concourse: db
+    app: concourse
+spec:
+  replicas: 1
+  serviceName: concourse-postgres
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      name: concourse-postgres
+      labels:
+        concourse: db
+        app: concourse
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: concourse-postgres
+          image: postgres:9.6
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: concourse
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: concourse
+                  key: postgres_password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests:
+              memory: 400M
+              cpu: 0.4
+            limits:
+              memory: 1G
+              cpu: 2
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: ssd-normal
+        resources:
+          requests:
+            storage: 8Gi
+---

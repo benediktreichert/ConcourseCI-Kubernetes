@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: concourse-postgres
+  labels:
+    app: concourse
+spec:
+  ports:
+  - name: postgres-concourse
+    port: 5432
+  selector:
+    app: concourse
+    concourse: db
